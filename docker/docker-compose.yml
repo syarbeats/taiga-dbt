@@ -37,8 +37,10 @@ x-environment:
 
 services:
   taiga-back:
-    image: taigaio/backend:alpha
-    command: "init-and-serve"
+    build:
+      context: ..
+      dockerfile: docker/images/Dockerfile.backend
+    command: ["python", "-m", "taiga", "runserver", "0.0.0.0:8000"]
     environment: *default-back-environment
     volumes:
       - taiga-static-data:/taiga/static
@@ -51,14 +53,16 @@ services:
       taiga-redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "python", "-m", "taiga", "--help"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v2/"]
       interval: 2s
       timeout: 15s
       retries: 5
 
   taiga-worker:
-    image: taigaio/backend:alpha
-    command: "tasksqueue worker -n main -c 4"
+    build:
+      context: ..
+      dockerfile: docker/images/Dockerfile.backend
+    command: ["python", "-m", "taiga", "tasksqueue", "worker", "-n", "main", "-c", "4"]
     environment: *default-back-environment
     volumes:
       - taiga-static-data:/taiga/static
@@ -98,7 +102,15 @@ services:
       - taiga
 
   taiga-front:
-    image: taigaio/frontend:alpha
+    build:
+      context: ..
+      dockerfile: docker/images/Dockerfile.frontend
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+        reservations:
+          memory: 4G
     environment:
       TAIGA_BACKEND_URL: "${TAIGA_BACKEND_URL}"
       TAIGA_EVENTS_URL: "${TAIGA_EVENTS_URL}"

@@ -17,6 +17,9 @@
 
 - [About](#about)
   - [Built with](#built-with)
+- [Running the Project](#running-the-project)
+  - [Using Docker (Production-like Environment)](#using-docker-production-like-environment)
+  - [Development Setup](#development-setup)
 - [Community](#community)
 - [Code of Conduct](#code-of-conduct)
 - [License](#license)
@@ -47,7 +50,102 @@ This is the repository of the next iteration of Taiga in which we are keeping ke
   [![PostCSS][postcss-badge]][postcss-url]
     
 </div>
-    
+
+## Running the Project
+
+You can run Taiga in two ways: using Docker for a production-like environment or running the backend and frontend separately for development.
+
+### Using Docker (Production-like Environment)
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/taigaio/taiga.git
+   cd taiga
+   ```
+
+2. Set up environment variables:
+   ```bash
+   cd docker
+   cp .env.example .env
+   ```
+   
+3. Edit the `.env` file to configure your environment (database credentials, email settings, etc.)
+
+4. Start the Docker containers:
+   ```bash
+   docker-compose up -d
+   ```
+
+5. Access Taiga at http://localhost:9000
+
+### Development Setup
+
+#### Backend (Python)
+
+1. Prerequisites:
+   - Python >= 3.11
+   - PostgreSQL >= 15.x
+   - Python development packages (python-dev or python3-dev)
+   - libpq-dev packages
+   - Redis >= 7.0 (optional)
+
+2. Set up the Python environment:
+   ```bash
+   cd python/
+   python3.11 -m venv --prompt taiga .venv
+   source .venv/bin/activate
+   pip install --upgrade pip wheel setuptools
+   ```
+
+3. Install development tools:
+   ```bash
+   pip install -r requirements/devel.txt
+   ```
+
+4. Set up the Taiga server:
+   ```bash
+   cd apps/taiga
+   pip install -r requirements/devel.txt
+   pip install -e .
+   cp .env.example.dev .env
+   ```
+
+5. Generate the database and sample data:
+   ```bash
+   ./scripts/regenerate_devel_env.sh
+   ```
+
+6. Compile translations:
+   ```bash
+   python -m taiga i18n compile-catalog
+   ```
+
+7. Start the backend in development mode:
+   ```bash
+   python -m taiga devserve -w
+   ```
+
+#### Frontend (JavaScript)
+
+1. Install dependencies:
+   ```bash
+   cd javascript/
+   npm i
+   ```
+
+2. Add configuration:
+   ```bash
+   npm run default-config
+   # or cp config.example.json apps/taiga/src/assets/config.json
+   ```
+
+3. Run the development server:
+   ```bash
+   npm start
+   ```
+
+4. Access the frontend at the URL shown in the console (typically http://localhost:4200)
+
 ## Community
 
 Welcome to our open source software community!

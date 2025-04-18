@@ -11,6 +11,7 @@ python/**media
 python/**pytest.ini
 python/**requirements
 !python/apps/taiga/requirements/prod.txt
+!python/apps/taiga/requirements/devel.txt
 python/**scripts
 python/**static
 !python/**emails/static

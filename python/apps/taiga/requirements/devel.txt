@@ -28,7 +28,7 @@ certifi==2023.7.22
     #   httpcore
     #   httpx
     #   requests
-cffi==1.15.1
+cffi
     # via cryptography
 charset-normalizer==3.2.0
     # via requests
@@ -92,7 +92,7 @@ hiredis==2.2.3
     # via redis
 httpcore==0.17.3
     # via httpx
-httptools==0.6.0
+httptools
     # via uvicorn
 httpx==0.24.1
     # via
@@ -110,7 +110,7 @@ jinja2==3.1.2
     # via
     #   -r requirements/commons.in
     #   fastapi-mailman
-lxml==4.9.3
+lxml
     # via svglib
 markdown-it-py==3.0.0
     # via rich
@@ -124,20 +124,12 @@ mypy-extensions==1.0.0
     # via mypy
 packaging==23.1
     # via pytest
-pillow==10.0.0
-    # via
-    #   easy-thumbnails
-    #   reportlab
+
 pluggy==1.2.0
     # via pytest
 procrastinate==0.27.0
     # via -r requirements/commons.in
-psycopg2==2.9.6
-    # via -r requirements/commons.in
-psycopg2-binary==2.9.6
-    # via
-    #   aiopg
-    #   procrastinate
+
 pycparser==2.21
     # via cffi
 pydantic[dotenv,email]==1.10.12
@@ -230,7 +222,7 @@ urllib3==2.0.4
     # via requests
 uvicorn[standard]==0.23.2
     # via -r requirements/commons.in
-uvloop==0.17.0
+uvloop
     # via uvicorn
 validators==0.20.0
     # via -r requirements/devel.in

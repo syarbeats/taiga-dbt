@@ -5,17 +5,86 @@
 # Copyright (c) 2021-present Kaleidos Ventures SL
 
 ##############################
+# DEPS STAGE
+##############################
+FROM node:18-alpine as deps
+LABEL maintainer="support@taiga.io"
+WORKDIR /taiga
+RUN apk add --no-cache \
+    python3 \
+    python3-dev \
+    py3-pip \
+    py3-setuptools \
+    make \
+    g++ \
+    git
+
+# Set environment variables for optimization
+ENV PYTHON=/usr/bin/python3 \
+    CFLAGS="-D_LARGEFILE64_SOURCE" \
+    npm_config_python=/usr/bin/python3 \
+    NODE_ENV=development \
+    npm_config_cache=/tmp/npm-cache \
+    npm_config_jobs=2 \
+    npm_config_loglevel=error \
+    npm_config_maxsockets=2 \
+    npm_config_fetch_retry_mintimeout=100000 \
+    npm_config_fetch_retry_maxtimeout=600000
+
+# Copy package files first
+COPY javascript/package*.json ./
+
+# Install global dependencies and configure npm
+RUN npm config set registry https://registry.npmjs.org/ && \
+    npm config set legacy-peer-deps true && \
+    npm install -g node-gyp@latest && \
+    npm cache clean --force
+
+# Install dependencies without running scripts
+RUN npm install --production --no-package-lock --no-audit --unsafe-perm --ignore-scripts && \
+    npm ci --production --no-optional --no-audit --unsafe-perm --ignore-scripts && \
+    npm install glob@latest --no-save
+
+# Copy full javascript directory and run postinstall
+COPY javascript/ ./
+RUN npm install glob@latest && \
+    npm run postinstall && \
+    rm -rf /tmp/npm-cache
+
+##############################
 # BUILD STAGE
 ##############################
 FROM node:18-alpine as build-stage
 LABEL maintainer="support@taiga.io"
-
 WORKDIR /taiga
 
-COPY javascript/ /taiga/
+# Set build environment variables
+ENV NODE_ENV=production \
+    npm_config_jobs=1 \
+    npm_config_loglevel=error \
+    npm_config_maxsockets=1 \
+    npm_config_fetch_retry_mintimeout=100000 \
+    npm_config_fetch_retry_maxtimeout=600000 \
+    NODE_OPTIONS="--max-old-space-size=4096" \
+    NX_MAX_PARALLEL=1
+
+COPY --from=deps /taiga/node_modules ./node_modules
+COPY javascript/ ./
+
+# Install build dependencies
 RUN set -eux; \
-    npm install; \
-    npm run build:prod;
+    apk add --no-cache \
+        python3 \
+        python3-dev \
+        py3-setuptools \
+        make \
+        g++
+
+# Run build steps separately
+RUN npm rebuild
+RUN npm run postinstall
+RUN npx update-browserslist-db@latest
+RUN NODE_OPTIONS="--max-old-space-size=4096" npm run build:prod -- --configuration=production --max-workers=1
 
 ##############################
 # NGINX STAGE
